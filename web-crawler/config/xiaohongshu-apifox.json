@@ -1,0 +1,34 @@
+{
+  "name": "xiaohongshu-apifox-docs",
+  "seedUrls": [
+    "https://xiaohongshu.apifox.cn/doc-2810914"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://xiaohongshu\\.apifox\\.cn/doc-.*",
+      "^https://xiaohongshu\\.apifox\\.cn/web/project/.*"
+    ],
+    "exclude": [
+      "^https://xiaohongshu\\.apifox\\.cn/login.*",
+      "^https://xiaohongshu\\.apifox\\.cn/register.*"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 10,
+    "ignoreHTTPSErrors": true
+  },
+  "output": {
+    "directory": "./output/xiaohongshu-apifox",
+    "format": "markdown"
+  }
+}

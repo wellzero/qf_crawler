@@ -1,0 +1,30 @@
+{
+  "name": "eulerpool-api-docs",
+  "seedUrls": [
+    "https://eulerpool.com/developers/"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://eulerpool\\.com/developers/api/.*"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 30000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 200,
+    "userDataDir": "./chrome_user_data"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

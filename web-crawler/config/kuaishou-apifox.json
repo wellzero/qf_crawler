@@ -1,0 +1,34 @@
+{
+  "name": "kuaishou-apifox-docs",
+  "seedUrls": [
+    "https://kuaishou.apifox.cn/api-7075070"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://kuaishou\\.apifox\\.cn/(api|doc)-\\d+/?$"
+    ],
+    "exclude": [
+      "\\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot)$",
+      "\\?.*",
+      "^https://kuaishou\\.apifox\\.cn/?$"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 10,
+    "userDataDir": "./chrome_user_data_kuaishou_apifox"
+  },
+  "output": {
+    "directory": "./output/kuaishou-apifox",
+    "format": "markdown"
+  }
+}

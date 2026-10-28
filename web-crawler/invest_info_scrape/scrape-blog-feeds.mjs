@@ -1,0 +1,576 @@
+/**
+ * scrape-blog-feeds.mjs
+ *
+ * Scrapes the most recent N hours (default 24) of posts from each blog/feed
+ * link listed in conf.json and writes one Markdown file per link.
+ *
+ * Supported sites:
+ *   - xueqiu.com user pages   (https://www.xueqiu.com/u/<user_id>)
+ *   - weibo.com user feeds    (https://weibo.com/u/<uid>?tabtype=feed)
+ *   - xcancel.com user pages  (https://xcancel.com/<username>, Nitter-style HTML)
+ *
+ * NOTE: xcancel.com was suspended (HTTP 451) in Sept 2026 amid X's lawsuit
+ * against Nitter/XCancel. Twitter/X feeds are fetched from whichever Nitter
+ * instance in "nitterInstances" (conf.json) currently serves RSS; links in
+ * conf.json may keep using xcancel.com URLs — the username is extracted and
+ * replayed against each configured instance until one returns a valid feed.
+ *
+ * Config: conf.json (next to package.json by default, or pass a path as argv[2])
+ *   {
+ *     "outputDir":   "./output/blog-feeds",   // base dir; .md files go to outputDir/<YYYY-MM-DD>/raw/
+ *     "userDataDir": "./chrome_user_data",    // Chrome profile with login cookies
+ *     "hours":       24,                       // time window
+ *     "headless":    true,
+ *     "scrollTimes": 6,                        // xcancel: max timeline pages to fetch
+ *     "scrollDelayMs": 2500,
+ *     "proxy":       "http://127.0.0.1:4080",  // optional proxy for xcancel RSS requests
+ *     "xcancelDelayMs": 8000,                  // min delay between xcancel RSS requests (429 avoidance)
+ *     "rssMaxRetries": 4,                      // retries per feed on HTTP 429/503/network errors
+ *     "rssRetryBaseMs": 5000,                  // exponential backoff base for RSS retries
+ *     "browserProxy": null,                    // optional proxy for the browser (xueqiu/weibo).
+ *                                              // NOTE: do NOT route xueqiu through an overseas
+ *                                              // proxy — its WAF serves a JS challenge instead
+ *                                              // of JSON and scraping silently returns nothing.
+ *     "links":       [ "https://...", ... ]
+ *   }
+ *
+ * NOTE: xueqiu/weibo require a logged-in Chrome profile. If the profile has
+ * no valid session, re-login with the QR helpers:
+ *   xvfb-run -a node invest_info_scrape/xueqiu-login.mjs
+ *   xvfb-run -a node invest_info_scrape/weibo-login.mjs
+ * (weibo's anonymous "visitor" cookies no longer work — a real login is
+ * required; conf.json "cookies" entries are only a fallback and do NOT
+ * overwrite cookies already present in the profile.)
+ * xcancel.com is scraped via its RSS feed (no login, no browser); the HTML
+ * pages sit behind an anti-bot challenge that headless Chrome cannot pass.
+ */
+
+import { chromium, request as pwRequest } from 'playwright';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, '..');
+
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+const configPath = path.resolve(process.cwd(), process.argv[2] || path.join(ROOT, 'conf.json'));
+if (!fs.existsSync(configPath)) {
+  console.error(`Config file not found: ${configPath}`);
+  process.exit(1);
+}
+const conf = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+
+const DATE = new Intl.DateTimeFormat('zh-CN', {
+  timeZone: 'Asia/Shanghai',
+  year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(new Date()).replace(/\//g, '-');
+const OUTPUT_DIR = path.join(
+  path.resolve(path.dirname(configPath), conf.outputDir || './output/blog-feeds'),
+  DATE,
+  'raw'
+);
+const USER_DATA_DIR = conf.userDataDir ? path.resolve(path.dirname(configPath), conf.userDataDir) : null;
+const HOURS = conf.hours || 24;
+const HEADLESS = conf.headless !== false;
+const SCROLL_TIMES = conf.scrollTimes ?? 6;
+const SCROLL_DELAY = conf.scrollDelayMs ?? 2500;
+const LINKS = conf.links || [];
+const PROXY = conf.proxy || null;               // used for xcancel RSS requests
+const BROWSER_PROXY = conf.browserProxy || null; // used for the browser (xueqiu/weibo)
+
+if (!LINKS.length) {
+  console.error('conf.json contains no links.');
+  process.exit(1);
+}
+fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+
+const SINCE = Date.now() - HOURS * 3600 * 1000;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+const fmtTime = (ms) =>
+  new Intl.DateTimeFormat('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false
+  }).format(new Date(ms));
+
+const stripHtml = (html = '') =>
+  html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+function classifyLink(url) {
+  if (/xueqiu\.com/.test(url)) return 'xueqiu';
+  if (/weibo\.com/.test(url)) return 'weibo';
+  if (/xcancel\.com/.test(url)) return 'xcancel';
+  if (NITTER_INSTANCES.some((h) => url.includes(h))) return 'xcancel';
+  return null;
+}
+
+function siteId(url) {
+  const m = url.match(/\/u\/(\d+)/) || url.match(/weibo\.com\/(\d+)/) || url.match(/xueqiu\.com\/(\d+)/)
+    || url.match(/xcancel\.com\/([A-Za-z0-9_]+)/);
+  return m ? m[1] : url.replace(/\W+/g, '_').slice(-40);
+}
+
+// ---------------------------------------------------------------------------
+// Xueqiu
+// ---------------------------------------------------------------------------
+function parseXueqiuStatuses(json) {
+  // Handle both response shapes:
+  //   { statuses: [ {created_at, text, ...} ] }
+  //   { list: [ { data: "<json string>" | {...} } ] }
+  let items = [];
+  if (Array.isArray(json?.statuses)) {
+    items = json.statuses;
+  } else if (Array.isArray(json?.list)) {
+    items = json.list
+      .map((it) => {
+        let d = it?.data ?? it;
+        if (typeof d === 'string') {
+          try { d = JSON.parse(d); } catch { return null; }
+        }
+        return d;
+      })
+      .filter(Boolean);
+  }
+  return items
+    .filter((s) => s && s.created_at)
+    .map((s) => ({
+      ts: Number(s.created_at),
+      author: s.user?.screen_name || '',
+      title: s.title || '',
+      text: stripHtml(s.text || s.description || ''),
+      url: `https://xueqiu.com/${s.user_id || s.user?.id || ''}/${s.id}`
+    }));
+}
+
+// ---------------------------------------------------------------------------
+// Weibo
+// ---------------------------------------------------------------------------
+function parseWeiboStatuses(json) {
+  const list = json?.data?.list || [];
+  return list
+    .filter((s) => s && s.created_at)
+    .map((s) => {
+      const ts = new Date(s.created_at).getTime();
+      let text = stripHtml(s.text_raw || s.text || '');
+      if (s.retweeted_status) {
+        const rt = s.retweeted_status;
+        const rtAuthor = rt.user?.screen_name || '原微博';
+        text += `\n\n> 转发 @${rtAuthor}: ${stripHtml(rt.text_raw || rt.text || '')}`;
+      }
+      return {
+        ts,
+        author: s.user?.screen_name || '',
+        title: '',
+        text,
+        url: `https://weibo.com/${s.user?.id || ''}/${s.bid || s.id}`,
+        needLongText: !!s.isLongText,
+        longTextId: s.id
+      };
+    });
+}
+
+async function fetchWeiboLongText(page, id) {
+  try {
+    return await page.evaluate(async (mid) => {
+      const r = await fetch(`https://weibo.com/ajax/statuses/longtext?id=${mid}`, {
+        credentials: 'include'
+      });
+      const j = await r.json();
+      return j?.data?.longTextContent || null;
+    }, id);
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Xcancel / Nitter (Twitter mirrors). The HTML pages sit behind anti-bot
+// challenges headless Chrome cannot pass, so we use the RSS feed instead:
+//   https://<nitter-instance>/<user>/rss
+// xcancel.com itself was suspended in Sept 2026 (HTTP 451, X lawsuit), so we
+// try each configured instance in order until one returns a valid RSS doc.
+// ---------------------------------------------------------------------------
+const RSS_UA = 'FreshRSS/1.24 (Linux; https://freshrss.org)';
+
+// Hosts serving Nitter-style RSS, in failover order. First one wins.
+const NITTER_INSTANCES = conf.nitterInstances || ['nitter.jaydenha.uk'];
+
+// Rate-limit handling: xcancel's RSS host returns HTTP 429 when feeds are
+// fetched back-to-back. Retry with exponential backoff (honoring Retry-After)
+// and pause between consecutive feed requests.
+const RSS_MAX_RETRIES = conf.rssMaxRetries ?? 4;
+const RSS_RETRY_BASE_MS = conf.rssRetryBaseMs ?? 5000;
+const XCANCEL_REQUEST_DELAY_MS = conf.xcancelDelayMs ?? 8000;
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function fetchRssWithRetry(req, url, { failFastOnNetworkError = false } = {}) {
+  for (let attempt = 0; attempt <= RSS_MAX_RETRIES; attempt++) {
+    let res;
+    try {
+      res = await req.get(url, { maxRedirects: 5, timeout: 60000 });
+    } catch (e) {
+      // With several nitter instances configured, a network-level failure
+      // (DNS/TLS/refused) means the instance is down — fail over instead of
+      // burning the full retry chain on it.
+      if (failFastOnNetworkError || attempt === RSS_MAX_RETRIES) throw e;
+      const wait = RSS_RETRY_BASE_MS * 2 ** attempt;
+      console.warn(`  [retry] RSS fetch error (${e.message}); retrying in ${Math.round(wait / 1000)}s (${attempt + 1}/${RSS_MAX_RETRIES})`);
+      await sleep(wait);
+      continue;
+    }
+    if (res.status() === 429 || res.status() === 503) {
+      if (attempt === RSS_MAX_RETRIES) return res;
+      const retryAfter = Number(res.headers()['retry-after']);
+      const wait = Number.isFinite(retryAfter) && retryAfter > 0
+        ? retryAfter * 1000
+        : RSS_RETRY_BASE_MS * 2 ** attempt + Math.floor(Math.random() * 2000);
+      console.warn(`  [retry] HTTP ${res.status()} (rate limited); retrying in ${Math.round(wait / 1000)}s (${attempt + 1}/${RSS_MAX_RETRIES})`);
+      await sleep(wait);
+      continue;
+    }
+    return res;
+  }
+}
+
+function decodeEntities(s = '') {
+  return s
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'");
+}
+
+function pickTag(block, tag) {
+  const m = block.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`));
+  if (!m) return '';
+  return m[1].replace(/^\s*<!\[CDATA\[/, '').replace(/\]\]>\s*$/, '');
+}
+
+// True when the response body is an HTML interstitial instead of RSS
+// (Anubis/Cloudflare challenge, XCancel's suspension notice, waiting-room
+// queues, auth walls...).
+function looksLikeChallengePage(xml = '') {
+  return /making sure you.*not a bot|attention required|service is suspended|not yet whitelisted|no authentication cookie|placed in a queue|access queue/i.test(xml);
+}
+
+// Rewrite a Nitter instance URL to the equivalent x.com URL:
+//   http://nitter.jaydenha.uk/elonmusk/status/123#m -> https://x.com/elonmusk/status/123
+function nitterLinkToX(rawLink) {
+  return rawLink
+    .trim()
+    .replace(/^https?:\/\/[^/]+\//, 'https://x.com/')
+    .replace(/#.*$/, '');
+}
+
+async function fetchNitterFeed(req, instance, username) {
+  const url = `https://${instance}/${username}/rss`;
+  try {
+    const res = await fetchRssWithRetry(req, url, { failFastOnNetworkError: true });
+    if (!res.ok()) {
+      console.warn(`  [failover] ${instance}: HTTP ${res.status()}`);
+      return null;
+    }
+    const xml = await res.text();
+    if (!/<rss[\s>]/i.test(xml)) {
+      const why = looksLikeChallengePage(xml) ? 'challenge/queue interstitial instead of RSS' : 'not a valid RSS document';
+      console.warn(`  [failover] ${instance}: ${why}`);
+      return null;
+    }
+    return xml;
+  } catch (e) {
+    console.warn(`  [failover] ${instance}: ${e.message}`);
+    return null;
+  }
+}
+
+async function scrapeXcancelRss(link, posts) {
+  const username = link.match(/(?:xcancel\.com|[a-z0-9.-]+)\/([A-Za-z0-9_]+)/)?.[1];
+  if (!username) {
+    console.warn(`  [skip] cannot parse xcancel username from ${link}`);
+    return;
+  }
+  const req = await pwRequest.newContext({
+    ...(PROXY ? { proxy: { server: PROXY } } : {}),
+    extraHTTPHeaders: { 'User-Agent': RSS_UA }
+  });
+  let xml = null;
+  try {
+    for (const instance of NITTER_INSTANCES) {
+      xml = await fetchNitterFeed(req, instance, username);
+      if (xml) break;
+    }
+  } finally {
+    await req.dispose();
+  }
+  if (!xml) {
+    console.error(`  [error] all ${NITTER_INSTANCES.length} nitter instance(s) failed for @${username}`);
+    return;
+  }
+
+  const channelTitle = decodeEntities(pickTag(xml.split('<item>')[0], 'title'));
+  const feedAuthor = channelTitle.split('/')[0].trim() || `@${username}`;
+
+  const itemRe = /<item>([\s\S]*?)<\/item>/g;
+  let m;
+  while ((m = itemRe.exec(xml))) {
+    const block = m[1];
+    const ts = Date.parse(pickTag(block, 'pubDate'));
+    if (Number.isNaN(ts)) continue;
+    const url = nitterLinkToX(pickTag(block, 'link'));
+    if (!url || posts.has(url)) continue;
+    const titleText = decodeEntities(pickTag(block, 'title'));
+    const isRetweet = titleText.startsWith('RT by @');
+    const body = stripHtml(pickTag(block, 'description')) || titleText;
+    posts.set(url, {
+      ts,
+      author: feedAuthor,
+      title: '',
+      text: isRetweet ? `🔁 Retweeted by @${username}:\n\n${body}` : body,
+      url
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Main scrape for one link
+// ---------------------------------------------------------------------------
+function looksLikeLoginWall(text) {
+  return /登录后查看|请登录后使用|立即登录|passport\.weibo|登录\/注册/.test(text);
+}
+
+async function scrapeLink(context, link) {
+  const site = classifyLink(link);
+  if (!site) {
+    console.warn(`  [skip] unsupported site: ${link}`);
+    return null;
+  }
+
+  const page = site === 'xcancel' ? null : await context.newPage();
+  const posts = new Map(); // url -> post (dedupe)
+
+  console.log(`\n>>> ${site}: ${link}`);
+
+  // xcancel needs no browser — fetch the RSS feed directly.
+  if (site === 'xcancel') {
+    await scrapeXcancelRss(link, posts);
+    const all = [...posts.values()].filter((p) => p.ts >= SINCE);
+    all.sort((a, b) => b.ts - a.ts);
+    console.log(`  collected ${posts.size} posts total, ${all.length} within last ${HOURS}h`);
+    return { site, link, posts: all };
+  }
+
+  // Intercept the JSON APIs the page itself calls.
+  page.on('response', async (res) => {
+    const u = res.url();
+    try {
+      if (site === 'xueqiu' && /statuses\/(origin\/)?timeline|user_timeline/.test(u) && res.request().resourceType() !== 'document') {
+        const json = await res.json().catch(() => null);
+        for (const p of parseXueqiuStatuses(json || {})) {
+          if (!posts.has(p.url)) posts.set(p.url, p);
+        }
+      } else if (site === 'weibo' && /ajax\/statuses\/mymblog/.test(u)) {
+        const json = await res.json().catch(() => null);
+        for (const p of parseWeiboStatuses(json || {})) {
+          if (!posts.has(p.url)) posts.set(p.url, p);
+        }
+      }
+    } catch { /* ignore individual response errors */ }
+  });
+
+  try {
+    await page.goto(link, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForTimeout(4000);
+
+    // Check for login wall
+    const bodyText = await page.evaluate(() => document.body?.innerText?.slice(0, 2000) || '');
+    if (looksLikeLoginWall(bodyText)) {
+      console.warn('  [warn] page requires login — re-login via:');
+      console.warn(`         xvfb-run -a node invest_info_scrape/${site}-login.mjs`);
+      console.warn('         (or refresh the "cookies" entry for this site in conf.json)');
+    }
+
+    // Scroll to trigger loading of older posts
+    for (let i = 0; i < SCROLL_TIMES; i++) {
+      await page.mouse.wheel(0, 3000);
+      await page.waitForTimeout(SCROLL_DELAY);
+      // Stop early if the oldest post we have is already outside the window
+      const oldest = Math.min(...[...posts.values()].map((p) => p.ts), Infinity);
+      if (posts.size > 0 && oldest < SINCE) break;
+    }
+  } catch (e) {
+    console.error(`  [error] navigation failed: ${e.message}`);
+  }
+
+  // Expand weibo long texts (must be done while page is alive, for cookies)
+  const all = [...posts.values()].filter((p) => p.ts >= SINCE);
+  if (site === 'weibo') {
+    for (const p of all) {
+      if (p.needLongText) {
+        const long = await fetchWeiboLongText(page, p.longTextId);
+        if (long) p.text = stripHtml(long) + (p.text.includes('转发 @') ? p.text.slice(p.text.indexOf('\n\n> 转发')) : '');
+      }
+    }
+  }
+
+  await page.close();
+  if (posts.size === 0 && site === 'xueqiu') {
+    console.warn('  [warn] no xueqiu data captured. If "browserProxy" is set, xueqiu\'s WAF');
+    console.warn('         is likely serving a JS challenge instead of JSON — remove the proxy.');
+  }
+  all.sort((a, b) => b.ts - a.ts);
+  console.log(`  collected ${posts.size} posts total, ${all.length} within last ${HOURS}h`);
+  return { site, link, posts: all };
+}
+
+// ---------------------------------------------------------------------------
+// Markdown output
+// ---------------------------------------------------------------------------
+function writeMarkdown(result) {
+  const { site, link, posts } = result;
+  const id = siteId(link);
+  const author = posts[0]?.author || id;
+
+  const lines = [];
+  lines.push(`# ${author} — ${site} 最近${HOURS}小时动态`);
+  lines.push('');
+  lines.push(`- 来源: ${link}`);
+  lines.push(`- 抓取时间: ${fmtTime(Date.now())} (Asia/Shanghai)`);
+  lines.push(`- 时间窗口: ${fmtTime(SINCE)} 起, 共 ${posts.length} 条`);
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+
+  if (!posts.length) {
+    lines.push('_最近时间窗口内没有新消息。_');
+  }
+  for (const p of posts) {
+    lines.push(`## ${fmtTime(p.ts)}${p.title ? ` — ${p.title}` : ''}`);
+    lines.push('');
+    lines.push(p.text || '_(无文本内容)_');
+    lines.push('');
+    lines.push(`[原文链接](${p.url})`);
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+  }
+
+  const file = path.join(OUTPUT_DIR, `${site}_${id}.md`);
+  fs.writeFileSync(file, lines.join('\n'), 'utf-8');
+  console.log(`  wrote ${file}`);
+  return file;
+}
+
+// ---------------------------------------------------------------------------
+// Entry
+// ---------------------------------------------------------------------------
+async function main() {
+  const launchOptions = {
+    headless: HEADLESS,
+    // NOTE: use Playwright's bundled Chromium, not the system Chrome
+    // (conf.browserChannel). The system "Chrome for Testing" build is older
+    // than playwright's and SIGTRAP-crashes headful against this profile
+    // after newer Chromium builds have written to it.
+    ...(conf.browserChannel ? { channel: conf.browserChannel } : {}),
+    viewport: { width: 1920, height: 1080 },
+    locale: 'zh-CN',
+    ...(BROWSER_PROXY ? { proxy: { server: BROWSER_PROXY } } : {}),
+    args: [
+      '--disable-blink-features=AutomationControlled',
+      '--no-sandbox',
+      '--disable-setuid-sandbox'
+    ]
+  };
+  if (PROXY) console.log(`Using proxy (RSS): ${PROXY}`);
+  if (BROWSER_PROXY) console.log(`Using proxy (browser): ${BROWSER_PROXY}`);
+
+  // Only launch Chrome if some link actually needs it (xueqiu/weibo).
+  const needsBrowser = LINKS.some((l) => ['xueqiu', 'weibo'].includes(classifyLink(l)));
+  let context = null;
+  if (needsBrowser && USER_DATA_DIR && fs.existsSync(USER_DATA_DIR)) {
+    context = await chromium.launchPersistentContext(USER_DATA_DIR, launchOptions);
+  } else if (needsBrowser) {
+    console.warn('[warn] userDataDir not found — launching without login cookies.');
+    const browser = await chromium.launch(launchOptions);
+    context = await browser.newContext({ viewport: launchOptions.viewport, locale: 'zh-CN' });
+  }
+
+  // Optional: inject raw cookie strings from conf.json, e.g.
+  //   "cookies": { "weibo.com": "SUB=xxx; SUBP=yyy", "xueqiu.com": "xq_a_token=zzz" }
+  // Useful when the chrome_user_data profile is not logged in.
+  // Cookies already present in the profile are KEPT (the profile's cookies are
+  // refreshed by the browser on every run, while conf.json strings go stale —
+  // a stale conf.json SUB must not clobber a fresh profile login).
+  for (const [domain, cookieStr] of Object.entries(conf.cookies || {})) {
+    if (!context) break;
+    const existing = new Set(
+      (await context.cookies(`https://${domain.replace(/^\./, '')}`)).map((c) => c.name)
+    );
+    const cookies = String(cookieStr)
+      .split(';')
+      .map((kv) => kv.trim())
+      .filter(Boolean)
+      .map((kv) => {
+        const i = kv.indexOf('=');
+        return {
+          name: kv.slice(0, i).trim(),
+          value: kv.slice(i + 1).trim(),
+          domain: domain.startsWith('.') ? domain : '.' + domain,
+          path: '/'
+        };
+      })
+      .filter((c) => c.name && c.value);
+    const fresh = cookies.filter((c) => !existing.has(c.name));
+    if (fresh.length) {
+      await context.addCookies(fresh);
+    }
+    console.log(`Cookies for ${domain}: injected ${fresh.length}, kept ${cookies.length - fresh.length} existing profile cookie(s)`);
+  }
+
+  const written = [];
+  let lastXcancelAt = 0;
+  for (const link of LINKS) {
+    try {
+      // Pace xcancel RSS requests to avoid HTTP 429 rate limiting.
+      if (classifyLink(link) === 'xcancel' && lastXcancelAt > 0) {
+        const wait = XCANCEL_REQUEST_DELAY_MS - (Date.now() - lastXcancelAt);
+        if (wait > 0) {
+          console.log(`  [wait] pacing xcancel requests, sleeping ${Math.round(wait / 1000)}s`);
+          await sleep(wait);
+        }
+      }
+      if (classifyLink(link) === 'xcancel') lastXcancelAt = Date.now();
+      const result = await scrapeLink(context, link);
+      if (result) written.push(writeMarkdown(result));
+    } catch (e) {
+      console.error(`  [error] ${link}: ${e.message}`);
+    }
+  }
+
+  if (context) await context.close();
+  console.log(`\nDone. ${written.length} markdown file(s) written to ${OUTPUT_DIR}`);
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

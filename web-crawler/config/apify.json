@@ -1,0 +1,37 @@
+{
+  "name": "apify-api-v2-docs",
+  "seedUrls": [
+    "https://docs.apify.com/api/v2",
+    "https://docs.apify.com/api/v2.md",
+    "https://docs.apify.com/api/openapi.json"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://docs\\.apify\\.com/api/v2(?:\\.md)?(?:[?#].*)?$",
+      "^https://docs\\.apify\\.com/api/openapi\\.(json|yaml)(?:[?#].*)?$"
+    ],
+    "exclude": [
+      "\\?(?:.*&)?utm_",
+      "#/?(?!/reference/)"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 90000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 10,
+    "userDataDir": "./chrome_user_data_apify",
+    "ignoreHTTPSErrors": true
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

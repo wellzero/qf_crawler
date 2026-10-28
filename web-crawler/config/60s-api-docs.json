@@ -1,0 +1,35 @@
+{
+  "name": "60s-api-docs",
+  "seedUrls": [
+    "https://docs.60s-api.viki.moe/254716087e0"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://docs\\.60s-api\\.viki\\.moe/.*"
+    ],
+    "exclude": [
+      "\\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|mp4|webm|pdf)$",
+      "/assets/",
+      "/static/"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "ignoreHTTPSErrors": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 10,
+    "userDataDir": "./chrome_user_data_60s_api"
+  },
+  "output": {
+    "directory": "./output/60s-api-docs",
+    "format": "markdown"
+  }
+}

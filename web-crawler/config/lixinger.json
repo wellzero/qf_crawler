@@ -1,0 +1,53 @@
+{
+  "name": "lixinger-crawler",
+  "seedUrls": [
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/valuation",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/valuation/primary",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/valuation/other",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/valuation/band",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/custom-chart",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/safety",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/profit",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/growth",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/cashflow",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/operation-capability",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/costs",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/per-capita",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/asset",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/debt",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/surplus-reinvestment-rate",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/peg",
+    "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/dcf"
+  ],
+  "urlRules": {
+    "include": [
+      ".*lixinger\\.com/analytics/company/detail/sh/600519/600519/.*"
+    ],
+    "exclude": [
+      ".*login.*",
+      ".*logout.*",
+      ".*register.*",
+      ".*open/api/doc.*"
+    ]
+  },
+  "login": {
+    "required": true,
+    "username": "",
+    "password": "",
+    "loginUrl": "https://www.lixinger.com/open/api/my-apis"
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 30000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 100,
+    "userDataDir": "./chrome_user_data"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown",
+    "savePages": true
+  }
+}

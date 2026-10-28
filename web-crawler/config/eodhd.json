@@ -1,0 +1,35 @@
+{
+  "name": "eodhd-api-docs",
+  "seedUrls": [
+    "https://eodhd.com/financial-apis"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://eodhd\\.com/financial-apis.*"
+    ],
+    "exclude": [
+      "/page/\\d+",
+      "\\?s=",
+      "/feed",
+      "/wp-"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 90000,
+    "waitBetweenRequests": 3000,
+    "maxRetries": 3,
+    "batchSize": 30,
+    "userDataDir": "./chrome_user_data_eodhd"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

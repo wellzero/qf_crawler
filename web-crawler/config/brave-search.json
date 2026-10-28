@@ -1,0 +1,32 @@
+{
+  "name": "brave-search-api-docs",
+  "seedUrls": [
+    "https://api-dashboard.search.brave.com/documentation",
+    "https://api-dashboard.search.brave.com/api-reference/web/search/get"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://api-dashboard\\.search\\.brave\\.com/documentation.*",
+      "^https://api-dashboard\\.search\\.brave\\.com/api-reference.*"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 25,
+    "userDataDir": "./chrome_user_data_brave"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "test-auth-page",
+  "seedUrls": [
+    "https://xiaohongshu.apifox.cn/doc-2810928"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://xiaohongshu\\.apifox\\.cn/doc-2810928$"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 1,
+    "ignoreHTTPSErrors": true
+  },
+  "output": {
+    "directory": "./output/test-fix",
+    "format": "markdown"
+  }
+}

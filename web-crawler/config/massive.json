@@ -1,0 +1,38 @@
+{
+  "name": "massive-api-docs",
+  "seedUrls": [
+    "https://massive.com/docs"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://massive\\.com/docs/.*"
+    ],
+    "exclude": [
+      "/_next/",
+      "\\.js$",
+      "\\.css$",
+      "\\.png$",
+      "\\.svg$",
+      "\\.jpg$",
+      "\\.ico$"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 180000,
+    "waitBetweenRequests": 3000,
+    "maxRetries": 3,
+    "batchSize": 20,
+    "userDataDir": ""
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

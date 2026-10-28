@@ -1,0 +1,40 @@
+{
+  "name": "lanyun-mcp-site",
+  "seedUrls": [
+    "https://mcp.lanyun.net/#/home",
+    "https://mcp.lanyun.net/#/termsOfService",
+    "https://mcp.lanyun.net/#/privacyPolicy",
+    "https://mcp.lanyun.net/#/mcpSquare",
+    "https://mcp.lanyun.net/#/manage/myMcp",
+    "https://mcp.lanyun.net/#/manage/apiKey"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://mcp\\.lanyun\\.net(?:/.*)?$",
+      "^https://mcp\\.lanyun\\.net/#/.*$"
+    ],
+    "exclude": [
+      "^https://mcp\\.lanyun\\.net/(?:js|css|img|fonts|assets|inner)/.*$",
+      "^https://mcp\\.lanyun\\.net/(?:console-api|mcp-api|sys|user|stationMsg|profiles|channel)/.*$",
+      "^https://mcp\\.lanyun\\.net/login(?:[?#].*)?$",
+      "^https://mcp\\.lanyun\\.net/404(?:[?#].*)?$"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": "https://mcp.lanyun.net/login"
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 800,
+    "maxRetries": 3,
+    "batchSize": 8
+  },
+  "output": {
+    "directory": "./output/lanyun-mcp",
+    "format": "markdown"
+  }
+}

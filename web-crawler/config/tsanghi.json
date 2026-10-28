@@ -1,0 +1,35 @@
+{
+  "name": "tsanghi-api-docs",
+  "seedUrls": [
+    "https://tsanghi.com/fin/doc"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://tsanghi\\.com/fin/doc",
+      "^https://www\\.tsanghi\\.com/fin/doc"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 2000,
+    "maxRetries": 3,
+    "batchSize": 20,
+    "userDataDir": "./chrome_user_data_tsanghi",
+    "ignoreHTTPSErrors": true
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  },
+  "parser": {
+    "mode": "tsanghi-split-docs"
+  }
+}

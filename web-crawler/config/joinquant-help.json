@@ -1,0 +1,42 @@
+{
+  "name": "joinquant-help",
+  "seedUrls": [
+    "https://www.joinquant.com/help/api/help"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://www\\.joinquant\\.com/help/api/(?:help|doc)(?:\\?.*)?(?:#.*)?$"
+    ],
+    "exclude": [
+      ".*login.*",
+      ".*logout.*",
+      ".*register.*"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 800,
+    "maxRetries": 3,
+    "batchSize": 200,
+    "userDataDir": "./chrome_user_data_joinquant_help"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  },
+  "parser": {
+    "urlPatternOverrides": [
+      {
+        "pattern": "^https://www\\.joinquant\\.com/help/api/(?:help|doc)(?:\\?.*)?(?:#.*)?$",
+        "parser": "JoinquantHelpParser"
+      }
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "tokenflux-mcps-docs",
+  "seedUrls": [
+    "https://tokenflux.ai/docs/quickstart",
+    "https://tokenflux.ai/mcps/"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://tokenflux\\.ai/docs/quickstart/?$",
+      "^https://tokenflux\\.ai/mcps/?$",
+      "^https://tokenflux\\.ai/mcps/[^/?#]+/?$"
+    ],
+    "exclude": [
+      "\\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|pdf|zip)(\\?.*)?$",
+      "^https://tokenflux\\.ai/assets/.*",
+      "^https://tokenflux\\.ai/v1/.*"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 10,
+    "userDataDir": "./chrome_user_data_tokenflux"
+  },
+  "output": {
+    "directory": "./output/tokenflux-mcps",
+    "format": "markdown"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "financial-modeling-prep-api-docs",
+  "seedUrls": [
+    "https://site.financialmodelingprep.com/developer/docs"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://site\\.financialmodelingprep\\.com/developer/docs.*"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 90000,
+    "waitBetweenRequests": 5000,
+    "maxRetries": 3,
+    "batchSize": 30,
+    "userDataDir": "./chrome_user_data_fmp"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

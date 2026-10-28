@@ -1,0 +1,27 @@
+{
+  "name": "tokenflux-test",
+  "seedUrls": [
+    "https://tokenflux.ai/mcps/EXA_AI"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://tokenflux\\.ai/mcps/[^/?#]+/?$"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 1,
+    "userDataDir": "./chrome_user_data_tokenflux"
+  },
+  "output": {
+    "directory": "./output/tokenflux-test",
+    "format": "markdown"
+  }
+}

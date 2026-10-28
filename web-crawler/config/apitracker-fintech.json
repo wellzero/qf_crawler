@@ -1,0 +1,54 @@
+{
+  "name": "apitracker-fintech",
+  "seedUrls": [
+    "https://apitracker.io/categories/fintech"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://apitracker\\.io/categories/fintech/?$",
+      "^https://apitracker\\.io/a/[a-z0-9-]+/?$"
+    ],
+    "exclude": [
+      "^https://apitracker\\.io/_next/.*",
+      "^https://apitracker\\.io/(all-apis|compare|mcp-servers|specifications|glossary).*$",
+      ".*(twitter|github|cloudinary|apideck\\.com).*"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 500,
+    "maxRetries": 3,
+    "batchSize": 8,
+    "userDataDir": "./chrome_user_data_apitracker",
+    "ignoreHTTPSErrors": true
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  },
+  "linkDiscovery": {
+    "prioritizedPatterns": [
+      {
+        "selector": "a[href^='/a/']",
+        "pathIncludes": [
+          "/a/"
+        ]
+      }
+    ]
+  },
+  "parser": {
+    "urlPatternOverrides": [
+      {
+        "pattern": "^https://apitracker\\.io/(categories/fintech|a/[a-z0-9-]+)/?$",
+        "parser": "ApiTrackerParser"
+      }
+    ]
+  }
+}

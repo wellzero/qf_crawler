@@ -1,0 +1,178 @@
+{
+  "meta": {
+    "version": "1.0",
+    "generated_at": "2026-10-28T11:19:21.270916Z",
+    "stock": {
+      "exchange": "sh",
+      "code": "600519",
+      "short_code": "600519",
+      "code_id": "600519",
+      "name": "600519"
+    }
+  },
+  "finance": {
+    "name": "lixinger-finance",
+    "stock": {
+      "exchange": "sh",
+      "code": "600519",
+      "short_code": "600519",
+      "code_id": "600519",
+      "name": "600519"
+    },
+    "urlTemplate": "https://www.lixinger.com/analytics/company/detail/{market}/{code}/{short_code}",
+    "marketFormats": {
+      "HK": {
+        "market": "hk",
+        "example": "hk/00700/700",
+        "note": "short_code drops leading zeros"
+      },
+      "CN_SZ": {
+        "market": "sz",
+        "example": "sz/000858/858",
+        "note": "short_code drops leading zeros"
+      },
+      "CN_SH": {
+        "market": "sh",
+        "example": "sh/600519/600519",
+        "note": "short_code same as code for SH stocks"
+      },
+      "CN_BJ": {
+        "market": "bj",
+        "example": "bj/920111/920111",
+        "note": "short_code same as code for BJ stocks"
+      },
+      "US": {
+        "market": "us",
+        "example": "UNKNOWN",
+        "note": "market and short_code must be searched at lixinger.com"
+      }
+    },
+    "seedUrls": [
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/bs",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/ps",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/cfs",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/is",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/m",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/operation-revenue-constitution"
+    ],
+    "urlRules": {
+      "include": [
+        ".*lixinger\\.com/analytics/company/detail/sh/600519/600519/(bs|ps|cfs|is|m|operation-revenue-constitution).*"
+      ],
+      "exclude": [
+        ".*login.*",
+        ".*logout.*",
+        ".*register.*",
+        ".*open/api/doc.*",
+        ".*/major-issues/.*"
+      ]
+    },
+    "login": {
+      "required": true,
+      "username": "",
+      "password": "",
+      "loginUrl": "https://www.lixinger.com/open/api/my-apis"
+    },
+    "crawler": {
+      "headless": true,
+      "timeout": 30000,
+      "waitBetweenRequests": 1000,
+      "maxRetries": 3,
+      "batchSize": 100,
+      "userDataDir": "./chrome_user_data"
+    },
+    "output": {
+      "directory": "/tmp/lxg_SH600519_75r5x7bb/datasource",
+      "format": "markdown",
+      "savePages": true
+    }
+  },
+  "fundamental": {
+    "name": "lixinger-fundmental",
+    "stock": {
+      "exchange": "sh",
+      "code": "600519",
+      "short_code": "600519",
+      "code_id": "600519",
+      "name": "600519"
+    },
+    "urlTemplate": "https://www.lixinger.com/analytics/company/detail/{market}/{code}/{short_code}",
+    "marketFormats": {
+      "HK": {
+        "market": "hk",
+        "example": "hk/00700/700",
+        "note": "short_code drops leading zeros"
+      },
+      "CN_SZ": {
+        "market": "sz",
+        "example": "sz/000858/858",
+        "note": "short_code drops leading zeros"
+      },
+      "CN_SH": {
+        "market": "sh",
+        "example": "sh/600519/600519",
+        "note": "short_code same as code for SH stocks"
+      },
+      "CN_BJ": {
+        "market": "bj",
+        "example": "bj/920111/920111",
+        "note": "short_code same as code for BJ stocks"
+      },
+      "US": {
+        "market": "us",
+        "example": "UNKNOWN",
+        "note": "market and short_code must be searched at lixinger.com"
+      }
+    },
+    "seedUrls": [
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/valuation",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/valuation/primary",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/valuation/other",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/valuation/band",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/custom-chart",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/safety",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/profit",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/growth",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/cashflow",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/operation-capability",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/costs",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/per-capita",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/asset",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/debt",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/surplus-reinvestment-rate",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/peg",
+      "https://www.lixinger.com/analytics/company/detail/sh/600519/600519/fundamental/dcf"
+    ],
+    "urlRules": {
+      "include": [
+        ".*lixinger\\.com/analytics/company/detail/sh/600519/600519/fundamental/.*"
+      ],
+      "exclude": [
+        ".*login.*",
+        ".*logout.*",
+        ".*register.*",
+        ".*open/api/doc.*"
+      ]
+    },
+    "login": {
+      "required": true,
+      "username": "",
+      "password": "",
+      "loginUrl": "https://www.lixinger.com/open/api/my-apis"
+    },
+    "crawler": {
+      "headless": true,
+      "timeout": 30000,
+      "waitBetweenRequests": 1000,
+      "maxRetries": 3,
+      "batchSize": 100,
+      "userDataDir": "./chrome_user_data"
+    },
+    "output": {
+      "directory": "/tmp/lxg_SH600519_75r5x7bb/datasource",
+      "format": "markdown",
+      "savePages": true
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "investoday-data-api-docs",
+  "seedUrls": [
+    "https://std.investoday.net/apidocs/ai-native-financial-data"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://std\\.investoday\\.net/apidocs(?:/.*)?$"
+    ],
+    "exclude": [
+      "^https://std\\.investoday\\.net/assets/.*$",
+      "^https://std\\.investoday\\.net/.*\\.(?:js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf)(?:\\?.*)?$",
+      "^https://std\\.investoday\\.net/(?:favicon\\.ico|robots\\.txt|sitemap\\.xml)$"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 90000,
+    "waitBetweenRequests": 3000,
+    "maxRetries": 3,
+    "batchSize": 20,
+    "maxPages": 200
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

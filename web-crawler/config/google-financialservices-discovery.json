@@ -1,0 +1,32 @@
+{
+  "name": "google-financialservices-discovery",
+  "seedUrls": [
+    "https://financialservices.googleapis.com/$discovery/rest?version=v1"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://financialservices\\.googleapis\\.com/\\$discovery/rest\\?version=v1$",
+      "^https://financialservices\\.googleapis\\.com/v1/.*"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 1,
+    "userDataDir": "./chrome_user_data_google_financialservices",
+    "ignoreHTTPSErrors": true
+  },
+  "output": {
+    "directory": "./output/google-financialservices-discovery",
+    "format": "markdown"
+  }
+}

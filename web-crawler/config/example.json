@@ -1,0 +1,61 @@
+{
+  "name": "example-crawler",
+  "seedUrls": [
+    "https://example.com/api/docs"
+  ],
+  "urlRules": {
+    "include": [
+      ".*api.*",
+      ".*docs.*"
+    ],
+    "exclude": [
+      ".*login.*",
+      ".*logout.*"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 30000,
+    "waitBetweenRequests": 500,
+    "maxRetries": 3,
+    "fetchMethod": "playwright"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown",
+    "storage": {
+      "type": "file",
+      "lancedb": {
+        "uri": "lancedb",
+        "table": "pages"
+      }
+    }
+  },
+  "linkDiscovery": {
+    "prioritizedPatterns": [
+      {
+        "selector": "a[href*=\"api-key=\"]",
+        "requiredQueryParams": [
+          "api-key"
+        ],
+        "pathIncludes": [
+          "/open/api/doc"
+        ]
+      }
+    ]
+  },
+  "parser": {
+    "urlPatternOverrides": [
+      {
+        "pattern": ".*/open/api/doc.*",
+        "parser": "ApiDocParser"
+      }
+    ]
+  }
+}

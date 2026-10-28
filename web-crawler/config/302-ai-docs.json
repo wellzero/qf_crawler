@@ -1,0 +1,34 @@
+{
+  "name": "302-ai-docs",
+  "seedUrls": [
+    "https://doc.302.ai"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://doc\\.302\\.ai(?:/\\d+[de]0|/)?$"
+    ],
+    "exclude": [
+      "#",
+      "\\?",
+      "^https://doc\\.302\\.ai/(?:sitemap(?:-index)?\\.xml|robots\\.txt)$"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 20,
+    "userDataDir": "./chrome_user_data_302_docs"
+  },
+  "output": {
+    "directory": "./output/302-ai-docs",
+    "format": "markdown"
+  }
+}

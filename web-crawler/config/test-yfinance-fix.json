@@ -1,0 +1,26 @@
+{
+  "name": "yfinance-ticker-fix",
+  "seedUrls": [
+    "https://www.aidoczh.com/yfinance/reference/api/yfinance.Ticker.html"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://www\\.aidoczh\\.com/yfinance/reference/api/yfinance\\.Ticker\\.html$"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 90000,
+    "waitBetweenRequests": 3000,
+    "maxRetries": 3,
+    "maxPages": 1
+  },
+  "output": {
+    "directory": "./test-yfinance-output",
+    "format": "markdown"
+  }
+}

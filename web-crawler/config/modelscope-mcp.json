@@ -1,0 +1,30 @@
+{
+  "name": "modelscope-mcp-docs",
+  "seedUrls": [
+    "https://modelscope.cn/mcp"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://modelscope\\.cn/mcp.*"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 10,
+    "userDataDir": "./chrome_user_data_modelscope"
+  },
+  "output": {
+    "directory": "./output/modelscope-mcp",
+    "format": "markdown"
+  }
+}

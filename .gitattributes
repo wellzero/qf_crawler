@@ -1,0 +1,6 @@
+# 提交时脱敏: 明文密码 + JSON password/username 字段
+*.json  filter=scrub-secrets
+*.js    filter=scrub-secrets
+*.mjs   filter=scrub-secrets
+*.py    filter=scrub-secrets
+*.md    filter=scrub-secrets

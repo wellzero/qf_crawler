@@ -1,0 +1,34 @@
+{
+  "name": "polyrouter-docs",
+  "seedUrls": [
+    "https://docs.polyrouter.io/"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://docs\\.polyrouter\\.io/.*"
+    ],
+    "exclude": [
+      "\\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$",
+      "/mintlify-assets/",
+      "/_next/"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 10,
+    "userDataDir": "./chrome_user_data_polyrouter"
+  },
+  "output": {
+    "directory": "./output/polyrouter",
+    "format": "markdown"
+  }
+}

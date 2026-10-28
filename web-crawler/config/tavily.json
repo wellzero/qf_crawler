@@ -1,0 +1,49 @@
+{
+  "name": "tavily-api-docs",
+  "seedUrls": [
+    "https://docs.tavily.com/documentation/api-reference/introduction",
+    "https://docs.tavily.com/documentation/quickstart",
+    "https://docs.tavily.com/documentation/about",
+    "https://docs.tavily.com/documentation/best-practices/best-practices-search",
+    "https://docs.tavily.com/documentation/best-practices/best-practices-crawl",
+    "https://docs.tavily.com/documentation/best-practices/best-practices-extract",
+    "https://docs.tavily.com/documentation/best-practices/best-practices-research",
+    "https://docs.tavily.com/documentation/integrations/langchain",
+    "https://docs.tavily.com/documentation/integrations/openai",
+    "https://docs.tavily.com/documentation/integrations/anthropic",
+    "https://docs.tavily.com/documentation/integrations/crewai",
+    "https://docs.tavily.com/documentation/integrations/llamaindex",
+    "https://docs.tavily.com/sdk/python/quick-start",
+    "https://docs.tavily.com/sdk/python/reference",
+    "https://docs.tavily.com/sdk/javascript/quick-start",
+    "https://docs.tavily.com/sdk/javascript/reference",
+    "https://docs.tavily.com/examples/use-cases/company-research",
+    "https://docs.tavily.com/examples/use-cases/market-researcher",
+    "https://docs.tavily.com/examples/use-cases/chat",
+    "https://docs.tavily.com/documentation/mcp"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://docs\\.tavily\\.com/.*"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": false,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 10,
+    "userDataDir": "./chrome_user_data_tavily"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

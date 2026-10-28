@@ -1,0 +1,26 @@
+{
+  "name": "tushare-pro-crawler",
+  "seedUrls": [
+    "https://tushare.pro/document/2?doc_id=25"
+  ],
+  "urlRules": {
+    "include": ["^https?://tushare\\.pro/document/"],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 30000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3
+  },
+  "output": {
+    "directory": "./output/tushare-pro",
+    "format": "markdown"
+  }
+}

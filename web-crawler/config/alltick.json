@@ -1,0 +1,40 @@
+{
+  "name": "alltick-api-docs",
+  "seedUrls": [
+    "https://apis.alltick.co/"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://apis\\.alltick\\.co/.*"
+    ],
+    "exclude": [
+      "\\~gitbook/",
+      "\\~image",
+      "\\.png$",
+      "\\.jpg$",
+      "\\.svg$",
+      "\\.css$",
+      "\\.js$",
+      "/rss\\.xml",
+      "/readme\\.md"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1500,
+    "maxRetries": 3,
+    "batchSize": 30,
+    "userDataDir": "./chrome_user_data_alltick"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

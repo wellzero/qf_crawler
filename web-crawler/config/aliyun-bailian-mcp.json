@@ -1,0 +1,43 @@
+{
+  "name": "aliyun-bailian-mcp-market",
+  "seedUrls": [
+    "https://bailian.console.aliyun.com/cn-beijing/?tab=mcp#/mcp-market"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://bailian\\.console\\.aliyun\\.com/cn-beijing/\\?tab=(mcp|app)#.*$"
+    ],
+    "exclude": [
+      ".*logout.*",
+      ".*sign.*",
+      ".*passport.*",
+      ".*/login.*"
+    ]
+  },
+  "login": {
+    "required": true,
+    "username": "",
+    "password": "",
+    "loginUrl": "https://account.aliyun.com/login/login.htm"
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1200,
+    "maxRetries": 3,
+    "batchSize": 20,
+    "userDataDir": "./chrome_user_data_aliyun_bailian"
+  },
+  "output": {
+    "directory": "./output/aliyun-bailian-mcp",
+    "format": "markdown"
+  },
+  "parser": {
+    "urlPatternOverrides": [
+      {
+        "pattern": "^https://bailian\\.console\\.aliyun\\.com/cn-beijing/\\?tab=(mcp|app)(?:#.*)?$",
+        "parser": "AliyunBailianMcpParser"
+      }
+    ]
+  }
+}

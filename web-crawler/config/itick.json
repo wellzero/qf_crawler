@@ -1,0 +1,30 @@
+{
+  "name": "itick-api-docs",
+  "seedUrls": [
+    "https://docs.itick.org/"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://docs\\.itick\\.org/.*"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 20,
+    "userDataDir": "./chrome_user_data_itick"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

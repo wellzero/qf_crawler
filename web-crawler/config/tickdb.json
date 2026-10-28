@@ -1,0 +1,30 @@
+{
+  "name": "tickdb-api-docs",
+  "seedUrls": [
+    "https://docs.tickdb.ai/en"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://docs\\.tickdb\\.ai/en/.*"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 2000,
+    "maxRetries": 3,
+    "batchSize": 20,
+    "userDataDir": "./chrome_user_data_tickdb"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

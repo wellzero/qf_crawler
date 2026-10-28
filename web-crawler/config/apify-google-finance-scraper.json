@@ -1,0 +1,39 @@
+{
+  "name": "apify-google-finance-scraper",
+  "seedUrls": [
+    "https://apify.com/scrapapi/google-finance-scraper",
+    "https://apify.com/scrapapi",
+    "https://docs.apify.com/api/v2"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://apify\\.com/scrapapi(/[^/?#]+)?/?$",
+      "^https://docs\\.apify\\.com/api/v2.*"
+    ],
+    "exclude": [
+      "/login",
+      "/signup",
+      "/pricing",
+      "/contact-sales",
+      "/marketplace"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 2000,
+    "maxRetries": 3,
+    "batchSize": 8,
+    "userDataDir": "./chrome_user_data_apify"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

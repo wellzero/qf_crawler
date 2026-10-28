@@ -1,0 +1,37 @@
+{
+  "name": "serpapi-ai-overview",
+  "seedUrls": [
+    "https://serpapi.com/ai-overview"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://serpapi\\.com/.*"
+    ],
+    "exclude": [
+      "/playground",
+      "/account",
+      "/login",
+      "/signup",
+      "/pricing",
+      "/status"
+    ]
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 2000,
+    "maxRetries": 3,
+    "batchSize": 10,
+    "userDataDir": "./chrome_user_data"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

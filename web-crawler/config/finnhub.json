@@ -1,0 +1,30 @@
+{
+  "name": "finnhub-api-docs",
+  "seedUrls": [
+    "https://finnhub.io/docs/api/"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://finnhub\\.io/docs/api/.*"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 10,
+    "userDataDir": "./chrome_user_data"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

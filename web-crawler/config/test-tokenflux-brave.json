@@ -1,0 +1,29 @@
+{
+  "name": "test-tokenflux-brave",
+  "seedUrls": [
+    "https://tokenflux.ai/mcps/BRAVE_SEARCH"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://tokenflux\\.ai/mcps/BRAVE_SEARCH/?$"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 10
+  },
+  "output": {
+    "directory": "./output/test-tokenflux-brave",
+    "format": "markdown"
+  }
+}

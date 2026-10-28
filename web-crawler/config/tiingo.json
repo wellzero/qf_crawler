@@ -1,0 +1,30 @@
+{
+  "name": "tiingo-api-docs",
+  "seedUrls": [
+    "https://www.tiingo.com/documentation/general/overview"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://www\\.tiingo\\.com/documentation/.*"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 30,
+    "userDataDir": "./chrome_user_data"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}

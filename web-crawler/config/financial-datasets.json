@@ -1,0 +1,31 @@
+{
+  "name": "financial-datasets-api-docs",
+  "seedUrls": [
+    "https://docs.financialdatasets.ai/api/"
+  ],
+  "urlRules": {
+    "include": [
+      "^https://docs\\.financialdatasets\\.ai/api/.*",
+      "^https://docs\\.financialdatasets\\.ai/data-provenance$"
+    ],
+    "exclude": []
+  },
+  "login": {
+    "required": false,
+    "username": "",
+    "password": "",
+    "loginUrl": ""
+  },
+  "crawler": {
+    "headless": true,
+    "timeout": 60000,
+    "waitBetweenRequests": 1000,
+    "maxRetries": 3,
+    "batchSize": 100,
+    "userDataDir": "./chrome_user_data"
+  },
+  "output": {
+    "directory": "./output",
+    "format": "markdown"
+  }
+}
